@@ -1947,6 +1947,14 @@ jobs:
           echo "========================================="
           echo ""
 
+          {
+            echo "exception_found=${exception_found}"
+            echo "exception_lines_file=${exception_lines}"
+            echo "invalid_block_found=${invalid_block_found}"
+            echo "invalid_block_lines_file=${invalid_block_lines}"
+            echo "metrics_file=${metrics_dir}/metrics.env"
+          } >> "${GITHUB_OUTPUT}"
+
       - name: Upload metrics artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -1966,9 +1974,17 @@ jobs:
           fi
           if [[ "${{ steps.analyze.outputs.exception_found }}" == "true" ]]; then
             echo "Exceptions were detected for ${{ matrix.tag }} run ${{ matrix.run }}."
+            if [[ -f "${{ steps.analyze.outputs.exception_lines_file }}" ]]; then
+              head -n 40 "${{ steps.analyze.outputs.exception_lines_file }}"
+            fi
+            exit 1
           fi
           if [[ "${{ steps.analyze.outputs.invalid_block_found }}" == "true" ]]; then
             echo "Invalid block lines were detected for ${{ matrix.tag }} run ${{ matrix.run }}."
+            if [[ -f "${{ steps.analyze.outputs.invalid_block_lines_file }}" ]]; then
+              head -n 40 "${{ steps.analyze.outputs.invalid_block_lines_file }}"
+            fi
+            exit 1
           fi
 
       - name: Collect and upload dotTrace snapshots
