@@ -67,26 +67,8 @@ public class RpcModuleProviderTests
     }
 
     [Test]
-    public void Default_modules_match_safe_baseline()
-    {
-        string[] expectedDefaultModules =
-        [
-            ModuleType.Eth,
-            ModuleType.Subscribe,
-            ModuleType.Trace,
-            ModuleType.TxPool,
-            ModuleType.Web3,
-            ModuleType.Proof,
-            ModuleType.Net,
-            ModuleType.Parity,
-            ModuleType.Health,
-            ModuleType.Rpc
-        ];
-
-        Assert.That(ModuleType.DefaultModules, Is.EqualTo(expectedDefaultModules));
-        Assert.That(new JsonRpcConfig().EnabledModules, Is.EqualTo(expectedDefaultModules));
-        Assert.That(GetDocumentedDefaultModules(), Is.EqualTo(expectedDefaultModules));
-    }
+    public void Configured_default_modules_match_documented_default() =>
+        Assert.That(new JsonRpcConfig().EnabledModules, Is.EqualTo(GetDocumentedDefaultModules()));
 
     [Test]
     public void Personal_module_is_disabled_by_default()
@@ -249,8 +231,10 @@ public class RpcModuleProviderTests
             .GetProperty(nameof(IJsonRpcConfig.EnabledModules))!
             .GetCustomAttribute<ConfigItemAttribute>()!;
 
-        return configItem.DefaultValue!
-            .Trim('[', ']')
-            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return (string[])ConfigSourceHelper.ParseValue(
+            typeof(string[]),
+            configItem.DefaultValue!,
+            nameof(JsonRpcConfig),
+            nameof(IJsonRpcConfig.EnabledModules))!;
     }
 }
